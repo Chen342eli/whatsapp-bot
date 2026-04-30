@@ -67,8 +67,6 @@ Return ONLY JSON:
       {
         type: parsed.type,
         value: parsed.value,
-        raw_text: incomingMsg,
-        source: "whatsapp"
       }
     ]);
 
