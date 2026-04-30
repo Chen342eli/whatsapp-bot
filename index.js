@@ -1,5 +1,6 @@
 const express = require("express");
 const OpenAI = require("openai");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
@@ -11,6 +12,19 @@ const openai = new OpenAI({
 
 app.post("/webhook", async (req, res) => {
   const incomingMsg = req.body.Body;
+
+  // זיהוי מים
+if (incomingMsg.includes("מים")) {
+  const numberMatch = incomingMsg.match(/\d+/);
+  const value = numberMatch ? parseInt(numberMatch[0]) : 1;
+
+  await supabase.from("logs").insert([
+    {
+      type: "water",
+      value: value
+    }
+  ]);
+}
 
   try {
     // שליחה ל-AI
@@ -65,6 +79,12 @@ app.post("/webhook", async (req, res) => {
     `);
   }
 });
+
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 // הפעלת השרת
 const PORT = process.env.PORT || 3000;
