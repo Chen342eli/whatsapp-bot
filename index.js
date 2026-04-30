@@ -85,6 +85,29 @@ Return ONLY valid JSON in this format:
       console.log("DB RESULT:", data, error);
     }
 
+    const today = new Date().toISOString().split("T")[0];
+    
+    // להביא מים מהיום
+    const { data: waterLogs } = await supabase
+      .from("logs")
+      .select("*")
+      .eq("type", "water")
+      .gte("created_at", today);
+    
+    // סכימה
+    const totalWater = waterLogs.reduce((sum, log) => sum + log.value, 0);
+    
+    // להביא יעד
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("daily_water_target_ml")
+      .limit(1)
+      .single();
+
+const target = profile?.daily_water_target_ml || 2000;
+
+console.log("TOTAL WATER:", totalWater, "TARGET:", target);
+    
     // 🔵 תשובה למשתמש
     const reply = parsed.reply || "מעולה! ממשיכים 💪";
 
