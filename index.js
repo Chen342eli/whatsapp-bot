@@ -46,6 +46,7 @@ Return ONLY valid JSON in this format:
 {
   "type": "water | weight | steps | workout | none",
   "value": number | null,
+  "unit": "ml | cup | bottle | none",
   "reply": "short motivating response in Hebrew (2-3 sentences, ask one question)"
 }
 `
@@ -73,17 +74,31 @@ Return ONLY valid JSON in this format:
 
     // 🟢 שמירה ל-DB
     if (parsed.type !== "none" && parsed.value !== null) {
-      const { data, error } = await supabase
-        .from("logs")
-        .insert([
-          {
-            type: parsed.type,
-            value: parsed.value
-          }
-        ]);
+    
+      let finalValue = parsed.value;
+    
+      // 🔥 המרה למ״ל אם זה מים
+      if (parsed.type === "water") {
+        if (parsed.unit === "cup") {
+          finalValue = parsed.value * 250;
+        } else if (parsed.unit === "bottle") {
+          finalValue = parsed.value * 720;
+        } else if (parsed.unit === "ml") {
+          finalValue = parsed.value;
+        }
+      }
 
-      console.log("DB RESULT:", data, error);
-    }
+  const { data, error } = await supabase
+    .from("logs")
+    .insert([
+      {
+        type: parsed.type,
+        value: finalValue
+      }
+    ]);
+
+  console.log("DB RESULT:", data, error);
+}
 
     const today = new Date().toISOString().split("T")[0];
     
