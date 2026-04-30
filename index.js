@@ -20,44 +20,66 @@ app.post("/webhook", async (req, res) => {
   const incomingMsg = req.body.Body;
 
   try {
-    // 🟢 שלב 1 — Parsing ל-JSON
-    const parsingCompletion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-Extract user input into JSON.
+ const completion = await openai.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [
+    {
+      role: "system",
+      content: `
+You are BuddyFit, a friendly but honest nutrition coach.
 
-Types:
+Your job:
+1. Understand the user's message
+2. Extract structured data
+3. Respond like a human coach
+
+Supported types:
 - water (cups)
 - weight (kg)
 - steps (number)
 - workout (minutes)
 
-Return ONLY JSON:
+Return ONLY valid JSON in this format:
 {
   "type": "water | weight | steps | workout | none",
-  "value": number | null
+  "value": number | null,
+  "reply": "short motivating response in Hebrew (2-3 sentences, ask one question)"
 }
 `
-        },
-        {
-          role: "user",
-          content: incomingMsg
-        }
-      ],
-    });
-
-    let parsed;
-
-    try {
-      parsed = JSON.parse(parsingCompletion.choices[0].message.content);
-    } catch (e) {
-      parsed = { type: "none", value: null };
+    },
+    {
+      role: "user",
+      content: incomingMsg
     }
+  ],
+});
 
-    console.log("PARSED:", parsed);
+let parsed;
+
+try {
+  parsed = JSON.parse(completion.choices[0].message.content);
+} catch (e) {
+  parsed = { type: "none", value: null, reply: "לא הבנתי עד הסוף 😅 תוכלי לנסח שוב?" };
+}
+
+console.log("PARSED:", parsed);
+
+// שמירה ל-DB
+if (parsed.type !== "none" && parsed.value !== null) {
+  const { data, error } = await supabase
+    .from("logs")
+    .insert([
+      {
+        type: parsed.type,
+        value: parsed.value
+      }
+    ]);
+
+  console.log("DB RESULT:", data, error);
+}
+
+// תשובה
+const reply = parsed.reply || "מעולה! ממשיכים 💪";
 
     // 🟡 שמירה ל-DB
     if (parsed.type !== "none" && parsed.value !== null) {
