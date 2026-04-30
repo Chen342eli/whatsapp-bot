@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+<style>
+body {
+  font-family: Arial;
+  background: #f5f6fa;
+  direction: rtl;
+  padding: 20px;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.title {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.value {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.sub {
+  color: #999;
+  margin-top: 5px;
+}
+
+.btn {
+  margin-top: 15px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.water { background: #e3f2fd; }
+.weight { background: #e8f5e9; }
+.food { background: #fff3e0; }
+activity { background: #ede7f6; }
+
+.btn-blue { background: #2196f3; color: white; }
+.btn-purple { background: #7e57c2; color: white; }
+</style>
+</head>
+
+<body>
+
+<h2>שלום 👋</h2>
+
+<div class="container">
+
+  <!-- צעדים -->
+  <div class="card">
+    <div class="title">צעדים</div>
+    <div class="value">0</div>
+    <div class="sub">מתוך 8,000</div>
+    <button class="btn btn-purple">עדכן</button>
+  </div>
+
+  <!-- משקל -->
+  <div class="card weight">
+    <div class="title">משקל</div>
+    <div class="value">73.3</div>
+    <div class="sub">ק״ג</div>
+    <button class="btn btn-purple">עדכן</button>
+  </div>
+
+  <!-- מים -->
+  <div class="card water">
+    <div class="title">מים</div>
+    <div class="value" id="waterValue">720</div>
+    <div class="sub">מתוך 2000 מ"ל</div>
+
+    <button class="btn btn-blue" onclick="addCup()">כוס</button>
+    <button class="btn btn-blue" onclick="addBottle()">בקבוק</button>
+  </div>
+
+  <!-- תזונה -->
+  <div class="card food">
+    <div class="title">תזונה</div>
+    <div class="value">1250</div>
+    <div class="sub">מתוך 2000 קלוריות</div>
+    <button class="btn">הוסף אוכל</button>
+  </div>
+
+  <!-- פעילות -->
+  <div class="card">
+    <div class="title">פעילות</div>
+    <div class="value">25</div>
+    <div class="sub">דקות</div>
+    <button class="btn">הוסף פעילות</button>
+  </div>
+
+</div>
+
+<script>
+// 💧 נתונים זמניים (בהמשך נחליף ל-API)
+let water = 720;
+
+function addCup() {
+  water += 250;
+  updateUI();
+}
+
+function addBottle() {
+  water += 720;
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById("waterValue").innerText = water;
+}
+</script>
+
+</body>
+</html>
