@@ -61,15 +61,19 @@ Return ONLY JSON:
 
     // 🟡 שמירה ל-DB
     if (parsed.type !== "none" && parsed.value !== null) {
-      await supabase.from("logs").insert([
-        {
-          type: parsed.type,
-          value: parsed.value,
-          raw_text: incomingMsg,
-          source: "whatsapp"
-        }
-      ]);
-    }
+  const { data, error } = await supabase
+    .from("logs")
+    .insert([
+      {
+        type: parsed.type,
+        value: parsed.value,
+        raw_text: incomingMsg,
+        source: "whatsapp"
+      }
+    ]);
+
+  console.log("DB RESULT:", data, error);
+}
 
     // 🔵 שלב 2 — תגובת באדי
     const replyCompletion = await openai.chat.completions.create({
