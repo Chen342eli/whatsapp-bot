@@ -57,6 +57,8 @@ Return ONLY JSON:
       parsed = { type: "none", value: null };
     }
 
+    console.log("PARSED:", parsed);
+
     // 🟡 שמירה ל-DB
     if (parsed.type !== "none" && parsed.value !== null) {
       await supabase.from("logs").insert([
