@@ -60,7 +60,16 @@ Return ONLY valid JSON in this format:
         },
         {
           role: "user",
-          content: incomingMsg
+          content: `
+          User message: ${incomingMsg}
+          
+          User water today: ${totalWater} ml
+          Daily target: ${target} ml
+          
+          You must respond based on progress toward the target:
+          - If user is behind → be direct and push
+          - If user is doing well → encourage
+`
         }
       ],
     });
