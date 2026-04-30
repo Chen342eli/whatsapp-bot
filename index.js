@@ -5,30 +5,72 @@ const { createClient } = require("@supabase/supabase-js");
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 
-// חיבור ל-OpenAI
+// OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Supabase
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
+
 app.post("/webhook", async (req, res) => {
   const incomingMsg = req.body.Body;
 
-  // זיהוי מים
-if (incomingMsg.includes("מים")) {
-  const numberMatch = incomingMsg.match(/\d+/);
-  const value = numberMatch ? parseInt(numberMatch[0]) : 1;
-
-  await supabase.from("logs").insert([
-    {
-      type: "water",
-      value: value
-    }
-  ]);
-}
-
   try {
-    // שליחה ל-AI
-    const completion = await openai.chat.completions.create({
+    // 🟢 שלב 1 — Parsing ל-JSON
+    const parsingCompletion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `
+Extract user input into JSON.
+
+Types:
+- water (cups)
+- weight (kg)
+- steps (number)
+- workout (minutes)
+
+Return ONLY JSON:
+{
+  "type": "water | weight | steps | workout | none",
+  "value": number | null
+}
+`
+        },
+        {
+          role: "user",
+          content: incomingMsg
+        }
+      ],
+    });
+
+    let parsed;
+
+    try {
+      parsed = JSON.parse(parsingCompletion.choices[0].message.content);
+    } catch (e) {
+      parsed = { type: "none", value: null };
+    }
+
+    // 🟡 שמירה ל-DB
+    if (parsed.type !== "none" && parsed.value !== null) {
+      await supabase.from("logs").insert([
+        {
+          type: parsed.type,
+          value: parsed.value,
+          raw_text: incomingMsg,
+          source: "whatsapp"
+        }
+      ]);
+    }
+
+    // 🔵 שלב 2 — תגובת באדי
+    const replyCompletion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -57,9 +99,9 @@ if (incomingMsg.includes("מים")) {
       ],
     });
 
-    const reply = completion.choices[0].message.content;
+    const reply = replyCompletion.choices[0].message.content;
 
-    // תשובה ל-WhatsApp
+    // תשובה לוואטסאפ
     const response = `
       <Response>
         <Message>${reply}</Message>
@@ -80,13 +122,6 @@ if (incomingMsg.includes("מים")) {
   }
 });
 
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
-
-// הפעלת השרת
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running");
