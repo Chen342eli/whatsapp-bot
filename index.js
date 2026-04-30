@@ -42,6 +42,13 @@ Supported types:
 - steps (number)
 - workout (minutes)
 
+Water units rules:
+- cup = 250 ml
+- bottle = 720 ml
+- if user says bottle → always treat as 720 ml
+- if user says cup → always treat as 250 ml
+- if user gives ml → use exact value
+
 Return ONLY valid JSON in this format:
 {
   "type": "water | weight | steps | workout | none",
